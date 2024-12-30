@@ -1,0 +1,26 @@
+{
+  "name": "dependency-insight",
+  "version": "1.0.0",
+  "description": "A CLI tool to audit and analyze your project's dependencies. Inside an npm package.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"No tests yet\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/s000ik/dependency-insight.git"
+  },
+  "keywords": [
+    "dependency",
+    "audit",
+    "npm",
+    "cli",
+    "tool"
+  ],
+  "author": "Satwik Singh",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/s000ik/dependency-insight/issues"
+  },
+  "homepage": "https://github.com/s000ik/dependency-insight#readme"
+}
