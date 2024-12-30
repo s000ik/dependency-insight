@@ -4,7 +4,17 @@
   "description": "A CLI tool to audit and analyze your project's dependencies. Inside an npm package.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"No tests yet\""
+    "test": "echo \"No tests yet\"",
+    "start": "node index.js"
+  },
+  "bin": {
+    "dep-insight": "index.js"
+  },
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "depcheck": "^1.4.7",
+    "filesize": "^8.0.7",
+    "inquirer": "^8.2.0"
   },
   "repository": {
     "type": "git",
