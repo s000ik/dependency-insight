@@ -28,7 +28,7 @@
     "tool"
   ],
   "author": "Satwik Singh",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/s000ik/dependency-insight/issues"
   },

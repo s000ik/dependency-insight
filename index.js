@@ -145,7 +145,7 @@ const checkOutdated = () => {
 };
 
 // Command: Prune unused dependencies
-const pruneDependencies = () => {
+const pruneDependencies = async () => {
   console.log(chalk.blue("Checking for unused dependencies...\n"));
   const packageJsonPath = path.join(process.cwd(), "package.json");
   if (!fs.existsSync(packageJsonPath)) {
@@ -158,7 +158,7 @@ const pruneDependencies = () => {
   const devDependencies = Object.keys(packageJson.devDependencies || {});
 
   console.log(chalk.yellow("Running analysis..."));
-  depcheck(process.cwd(), { ignoreDirs: ["node_modules"] }, (unused) => {
+  depcheck(process.cwd(), { ignoreDirs: ["node_modules"] }, async (unused) => {
     const unusedDeps = unused.dependencies;
     const unusedDevDeps = unused.devDependencies;
 
@@ -166,6 +166,57 @@ const pruneDependencies = () => {
       console.log(chalk.red("Unused dependencies found:\n"));
       unusedDeps.forEach((dep) => console.log(chalk.red(`- ${dep}`)));
       unusedDevDeps.forEach((dep) => console.log(chalk.red(`- ${dep} (dev)`)));
+
+      const { prompt } = require("inquirer");
+      
+      // Ask if user wants to uninstall
+      const { shouldUninstall } = await prompt({
+        type: "confirm",
+        name: "shouldUninstall",
+        message: "Would you like to uninstall unused dependencies?",
+        default: false
+      });
+
+      if (shouldUninstall) {
+        // Create choices for selection
+        const choices = [
+          ...unusedDeps.map(dep => ({ name: dep, value: dep, type: "prod" })),
+          ...unusedDevDeps.map(dep => ({ name: `${dep} (dev)`, value: dep, type: "dev" }))
+        ];
+
+        // Let user select which deps to uninstall
+        const { selected } = await prompt({
+          type: "checkbox",
+          name: "selected",
+          message: "Select dependencies to uninstall:",
+          choices
+        });
+
+        if (selected.length) {
+          console.log(chalk.blue("\nUninstalling dependencies...\n"));
+          const startTime = Date.now();
+
+          for (const dep of selected) {
+            process.stdout.write(chalk.yellow(`Uninstalling ${dep}... `));
+            try {
+              execCommand(`npm uninstall ${dep}`);
+              console.log(chalk.green("✓"));
+            } catch (error) {
+              console.log(chalk.red("✗"));
+              console.log(chalk.red(`Error uninstalling ${dep}: ${error.message}`));
+            }
+          }
+
+          const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+          console.log(
+            chalk.green(
+              `\n✨ Successfully uninstalled ${selected.length} package(s) in ${duration}s`
+            )
+          );
+        } else {
+          console.log(chalk.yellow("\nNo packages selected for uninstallation."));
+        }
+      }
     } else {
       console.log(chalk.green("No unused dependencies found!"));
     }
