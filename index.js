@@ -22,6 +22,7 @@ const execCommand = (command) => {
         return JSON.parse(error.stdout);
       } catch (e) {}
     }
+    
     console.error(chalk.red(`Error executing: ${command}`));
     console.error(error.message);
     if (error.stdout) console.error(chalk.yellow(`Stdout: ${error.stdout}`));
