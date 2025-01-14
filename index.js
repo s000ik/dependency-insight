@@ -392,15 +392,20 @@ const suggestAlternatives = () => {
   const result = execCommand("npm ls --json");
   if (result) {
     const root = result.dependencies;
+    const suggestions = [];
 
-    Object.entries(root).forEach(([dep, info]) => {
+    Object.entries(root).forEach(([dep]) => {
       if (largeDeps[dep]) {
-        console.log(
-          chalk.yellow(`Consider using ${largeDeps[dep]} instead of ${dep}`)
-        );
+        suggestions.push(`Consider using ${largeDeps[dep]} instead of ${dep}`);
       }
     });
-}
+
+    if (suggestions.length === 0) {
+      console.log(chalk.green("No suggestions at the moment."));
+    } else {
+      suggestions.forEach((msg) => console.log(chalk.yellow(msg)));
+    }
+  }
 };
 
 
@@ -632,14 +637,14 @@ const main = async () => {
     default:
       console.log(chalk.blue("Dependency Insight CLI"));
       console.log("Usage:");
-      console.log("  audit     - Audit dependencies for vulnerabilities");
-      console.log("  outdated  - Check for outdated dependencies");
-      console.log("  prune     - Check for unused dependencies");
-      console.log("  tree      - Visualize dependency tree");
-      console.log("  suggest   - Suggest lightweight alternatives for heavy dependencies");
-      console.log("  size      - Analyze bundle size");
-      console.log("  health    - Check project health");
-      console.log("  update    - Interactive update for dependencies");
+      console.log("  audit       - Audit dependencies for vulnerabilities");
+      console.log("  outdated    - Check for outdated dependencies");
+      console.log("  update      - Interactive update for dependencies");
+      console.log("  prune       - Check for unused dependencies");
+      console.log("  tree        - Visualize dependency tree");
+      console.log("  suggest     - Suggest lightweight alternatives for heavy dependencies");
+      console.log("  size        - Analyze bundle size");
+      console.log("  health      - Check project health");
       console.log("  clear-cache - Clear npm cache");
       break;
   }
