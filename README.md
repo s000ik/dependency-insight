@@ -1,9 +1,6 @@
 # Dependency Insight CLI Tool
-### dependency-insight npm package
-
 ## Overview
-
-`dependency-insight` (or `dep-insight`) is a tiny, powerful, and user-friendly command-line tool designed to help you audit, analyze, and manage your project's dependencies. It provides a wide range of features to ensure that your project uses the most up-to-date, secure, and efficient libraries.
+`dependency-insight` is a tiny, powerful, and user-friendly command-line tool designed to help you audit, analyze, and manage your project's dependencies. It provides a wide range of features to ensure that your project uses the most up-to-date, secure, and efficient libraries.
 
 ## Features
 
@@ -236,11 +233,10 @@ Last updated: 15/12/2023
 
 This tool uses the following libraries:
 
-- `chalk`: For colorful output in the terminal.
+- `chalk`: For colorful and easy-to-read outputs in the terminal. 
 - `depcheck`: For identifying unused dependencies in your project.
 - `inquirer`: For prompting users during interactive commands.
 - `filesize`: For displaying file sizes in human-readable formats.
-- `https`: For making requests to external APIs.
 
 ---
 
