@@ -1,6 +1,9 @@
 # Dependency Insight CLI Tool
 
+
+
 ## Overview
+![dep-insight](https://github.com/user-attachments/assets/3c8cbfd2-4458-4910-95d5-70420122f142)
 `dependency-insight` is a tiny, powerful, and user-friendly command-line tool designed to help you audit, analyze, and manage your project's dependencies. It provides a wide range of features to ensure that your project uses the most up-to-date, secure, and efficient libraries.
 
 ## Features
