@@ -1,6 +1,6 @@
 {
   "name": "dependency-insight",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "A CLI tool to audit and analyze your project's dependencies. Inside an npm package.",
   "main": "index.js",
   "scripts": {
