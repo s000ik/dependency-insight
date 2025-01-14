@@ -8,6 +8,18 @@ const chalk = require("chalk");
 const depcheck = require("depcheck");
 const https = require("https");
 
+const importInquirer = async () => {
+  try {
+    const module = await import('inquirer');
+    return module.default;
+  } catch (error) {
+    console.error(chalk.red("Error: The 'inquirer' package is required but not installed."));
+    console.log(chalk.yellow("Please install it using: npm install inquirer"));
+    process.exit(1);
+  }
+};
+
+
 // =====================================
 // Utility Functions
 // =====================================
@@ -22,7 +34,7 @@ const execCommand = (command) => {
         return JSON.parse(error.stdout);
       } catch (e) {}
     }
-    
+
     console.error(chalk.red(`Error executing: ${command}`));
     console.error(error.message);
     if (error.stdout) console.error(chalk.yellow(`Stdout: ${error.stdout}`));
@@ -80,33 +92,39 @@ const checkDownloads = async (pkg) => {
 };
 
 const checkGitHub = async (pkg) => {
-    try {
-      const pkgPath = path.join(process.cwd(), 'node_modules', pkg, 'package.json');
-      const pkgJson = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-      const repoUrl = pkgJson.repository?.url || pkgJson.repository;
-      
-      if (repoUrl) {
-        const githubUrl = repoUrl.replace('git+', '').replace('.git', '').replace('git:', 'https:');
-        const apiUrl = githubUrl.replace('github.com', 'api.github.com/repos');
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        const data = await makeRequest(apiUrl);
-        if (!data) return null;
-  
-        return {
-          stars: data.stargazers_count,
-          issues: data.open_issues_count,
-          updated: data.updated_at
-        };
-      }
-      return null;
-    } catch (e) {
-      return null;
+  try {
+    const pkgPath = path.join(
+      process.cwd(),
+      "node_modules",
+      pkg,
+      "package.json"
+    );
+    const pkgJson = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+    const repoUrl = pkgJson.repository?.url || pkgJson.repository;
+
+    if (repoUrl) {
+      const githubUrl = repoUrl
+        .replace("git+", "")
+        .replace(".git", "")
+        .replace("git:", "https:");
+      const apiUrl = githubUrl.replace("github.com", "api.github.com/repos");
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const data = await makeRequest(apiUrl);
+      if (!data) return null;
+
+      return {
+        stars: data.stargazers_count,
+        issues: data.open_issues_count,
+        updated: data.updated_at,
+      };
     }
-  };
+    return null;
+  } catch (e) {
+    return null;
+  }
+};
 
-
-  
 // =====================================
 // Core Commands
 // =====================================
@@ -168,10 +186,10 @@ const pruneDependencies = async () => {
       unusedDeps.forEach((dep) => console.log(chalk.red(`- ${dep}`)));
       unusedDevDeps.forEach((dep) => console.log(chalk.red(`- ${dep} (dev)`)));
 
-      const { prompt } = require("inquirer");
-      
-      // Ask if user wants to uninstall
-      const { shouldUninstall } = await prompt({
+      // Get inquirer instance
+      const inquirer = await importInquirer();
+
+      const { shouldUninstall } = await inquirer.prompt({
         type: "confirm",
         name: "shouldUninstall",
         message: "Would you like to uninstall unused dependencies?",
@@ -179,14 +197,12 @@ const pruneDependencies = async () => {
       });
 
       if (shouldUninstall) {
-        // Create choices for selection
         const choices = [
           ...unusedDeps.map(dep => ({ name: dep, value: dep, type: "prod" })),
           ...unusedDevDeps.map(dep => ({ name: `${dep} (dev)`, value: dep, type: "dev" }))
         ];
 
-        // Let user select which deps to uninstall
-        const { selected } = await prompt({
+        const { selected } = await inquirer.prompt({
           type: "checkbox",
           name: "selected",
           message: "Select dependencies to uninstall:",
@@ -204,7 +220,9 @@ const pruneDependencies = async () => {
               console.log(chalk.green("✓"));
             } catch (error) {
               console.log(chalk.red("✗"));
-              console.log(chalk.red(`Error uninstalling ${dep}: ${error.message}`));
+              console.log(
+                chalk.red(`Error uninstalling ${dep}: ${error.message}`)
+              );
             }
           }
 
@@ -215,7 +233,9 @@ const pruneDependencies = async () => {
             )
           );
         } else {
-          console.log(chalk.yellow("\nNo packages selected for uninstallation."));
+          console.log(
+            chalk.yellow("\nNo packages selected for uninstallation.")
+          );
         }
       }
     } else {
@@ -288,70 +308,70 @@ const visualizeTree = () => {
 
 // Command: Analyze bundle size
 const analyzeSize = () => {
-    console.log(chalk.blue("Analyzing dependency sizes...\n"));
-    const result = execCommand("npm list --json");
-    if (!result) return;
-  
-    // Get total size of directory recursively
-    const getTotalSizeInMB = (dirPath) => {
-      let totalSize = 0;
-      try {
-        const files = fs.readdirSync(dirPath);
-        for (const file of files) {
-          // Skip certain files/directories
-          if (file === "." || file === ".." || file === ".git") continue;
-  
-          const filePath = path.join(dirPath, file);
-          const stats = fs.statSync(filePath);
-  
-          if (stats.isSymbolicLink()) {
-            // Handle symlinks differently
-            continue;
-          } else if (stats.isDirectory()) {
-            const dirSize = getTotalSizeInMB(filePath);
-            totalSize += dirSize * 1024 * 1024; // Convert MB back to bytes
-          } else if (stats.isFile()) {
-            totalSize += stats.size;
-          }
+  console.log(chalk.blue("Analyzing dependency sizes...\n"));
+  const result = execCommand("npm list --json");
+  if (!result) return;
+
+  // Get total size of directory recursively
+  const getTotalSizeInMB = (dirPath) => {
+    let totalSize = 0;
+    try {
+      const files = fs.readdirSync(dirPath);
+      for (const file of files) {
+        // Skip certain files/directories
+        if (file === "." || file === ".." || file === ".git") continue;
+
+        const filePath = path.join(dirPath, file);
+        const stats = fs.statSync(filePath);
+
+        if (stats.isSymbolicLink()) {
+          // Handle symlinks differently
+          continue;
+        } else if (stats.isDirectory()) {
+          const dirSize = getTotalSizeInMB(filePath);
+          totalSize += dirSize * 1024 * 1024; // Convert MB back to bytes
+        } else if (stats.isFile()) {
+          totalSize += stats.size;
         }
-      } catch (e) {
-        console.error(chalk.red(`Error reading ${dirPath}: ${e.message}`));
-        return 0;
       }
-      return (totalSize / (1024 * 1024)).toFixed(2); // Convert bytes to MB
-    };
-  
-    // Get package sizes with validation
-    const packageSizes = Object.keys(result.dependencies)
-      .map((dep) => {
-        const depPath = path.join(process.cwd(), "node_modules", dep);
-        if (!fs.existsSync(depPath)) {
-          console.warn(chalk.yellow(`Warning: ${dep} not found in node_modules`));
-          return { name: dep, size: 0 };
-        }
-        const size = getTotalSizeInMB(depPath);
-        return { name: dep, size: parseFloat(size) };
-      })
-      .filter((pkg) => pkg.size > 0) // Remove zero-size packages
-      .sort((a, b) => b.size - a.size);
-  
-    // Display results with improved formatting
-    packageSizes.forEach(({ name, size }) => {
-      let color = chalk.green; // < 1MB
-      if (size > 10) color = chalk.red; // > 10MB
-      else if (size > 5) color = chalk.yellow; // 5-10MB
-  
-      const sizeString = size.toFixed(2).padStart(6);
-      console.log(`${chalk.bold(name.padEnd(30))} ${color(sizeString + " MB")}`);
-    });
-  
-    // Show total size and package count
-    const totalSize = packageSizes.reduce((sum, pkg) => sum + pkg.size, 0);
-    console.log(`\n${chalk.blue("Total packages:")} ${packageSizes.length}`);
-    console.log(
-      `${chalk.blue("Total size:")} ${chalk.bold(totalSize.toFixed(2) + " MB")}`
-    );
+    } catch (e) {
+      console.error(chalk.red(`Error reading ${dirPath}: ${e.message}`));
+      return 0;
+    }
+    return (totalSize / (1024 * 1024)).toFixed(2); // Convert bytes to MB
   };
+
+  // Get package sizes with validation
+  const packageSizes = Object.keys(result.dependencies)
+    .map((dep) => {
+      const depPath = path.join(process.cwd(), "node_modules", dep);
+      if (!fs.existsSync(depPath)) {
+        console.warn(chalk.yellow(`Warning: ${dep} not found in node_modules`));
+        return { name: dep, size: 0 };
+      }
+      const size = getTotalSizeInMB(depPath);
+      return { name: dep, size: parseFloat(size) };
+    })
+    .filter((pkg) => pkg.size > 0) // Remove zero-size packages
+    .sort((a, b) => b.size - a.size);
+
+  // Display results with improved formatting
+  packageSizes.forEach(({ name, size }) => {
+    let color = chalk.green; // < 1MB
+    if (size > 10) color = chalk.red; // > 10MB
+    else if (size > 5) color = chalk.yellow; // 5-10MB
+
+    const sizeString = size.toFixed(2).padStart(6);
+    console.log(`${chalk.bold(name.padEnd(30))} ${color(sizeString + " MB")}`);
+  });
+
+  // Show total size and package count
+  const totalSize = packageSizes.reduce((sum, pkg) => sum + pkg.size, 0);
+  console.log(`\n${chalk.blue("Total packages:")} ${packageSizes.length}`);
+  console.log(
+    `${chalk.blue("Total size:")} ${chalk.bold(totalSize.toFixed(2) + " MB")}`
+  );
+};
 
 // Suggesting lightweight alternatives for heavy dependencies
 const suggestAlternatives = () => {
@@ -408,7 +428,6 @@ const suggestAlternatives = () => {
     }
   }
 };
-
 
 // Command: Check project health
 const checkHealth = async () => {
@@ -523,22 +542,23 @@ const checkHealth = async () => {
 // Maintenance Commands
 // =====================================
 
-
 // Command: Interactive update for dependencies
 const interactiveUpdate = async () => {
+  // Get inquirer instance using the importInquirer helper
+  const inquirer = await importInquirer();
+
   const outdated = execCommand("npm outdated --json");
   if (!outdated || Object.keys(outdated).length === 0) {
     console.log(chalk.green("All dependencies are up to date!"));
     return;
   }
 
-  const { prompt } = require("inquirer");
   const choices = Object.entries(outdated).map(([dep, info]) => ({
     name: `${dep}: ${info.current} → ${info.latest}`,
     value: { name: dep, version: info.latest },
   }));
 
-  const { selected } = await prompt({
+  const { selected } = await inquirer.prompt({
     type: "checkbox",
     name: "selected",
     message: "Select dependencies to update:",
@@ -574,29 +594,27 @@ const interactiveUpdate = async () => {
   }
 };
 
-
 // Command: Clear npm cache
 const clearCache = async () => {
-    const { prompt } = require("inquirer");
-    
-    console.log(chalk.yellow("Warning: This will clear your npm cache completely.\n"));
-    
-    const { confirmed } = await prompt({
-      type: "confirm",
-      name: "confirmed",
-      message: "Are you sure you want to clear the npm cache?",
-      default: false
-    });
+  const inquirer = await importInquirer();
   
-    if (confirmed) {
-      console.log(chalk.blue("\nClearing npm cache..."));
-      execCommand("npm cache clean --force");
-      console.log(chalk.green("✨ Successfully cleared npm cache"));
-    } else {
-      console.log(chalk.yellow("\nOperation aborted"));
-    }
-  };
+  console.log(chalk.yellow("Warning: This will clear your npm cache completely.\n"));
 
+  const { confirmed } = await inquirer.prompt({
+    type: "confirm",
+    name: "confirmed",
+    message: "Are you sure you want to clear the npm cache?",
+    default: false
+  });
+
+  if (confirmed) {
+    console.log(chalk.blue("\nClearing npm cache..."));
+    execCommand("npm cache clean --force");
+    console.log(chalk.green("✨ Successfully cleared npm cache"));
+  } else {
+    console.log(chalk.yellow("\nOperation aborted"));
+  }
+};
 
 //  CLI Options
 const main = async () => {
@@ -643,7 +661,9 @@ const main = async () => {
       console.log("  update      - Interactive update for dependencies");
       console.log("  prune       - Check for unused dependencies");
       console.log("  tree        - Visualize dependency tree");
-      console.log("  suggest     - Suggest lightweight alternatives for heavy dependencies");
+      console.log(
+        "  suggest     - Suggest lightweight alternatives for heavy dependencies"
+      );
       console.log("  size        - Analyze bundle size");
       console.log("  health      - Check project health");
       console.log("  clear-cache - Clear npm cache");

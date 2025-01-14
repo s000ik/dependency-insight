@@ -1,7 +1,7 @@
 {
   "name": "dependency-insight",
-  "version": "1.6.1",
-  "description": "A CLI tool to audit and analyze your project's dependencies. Inside an npm package.",
+  "version": "1.8.0",
+  "description": "A CLI tool to audit and analyze your project's dependencies.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"No tests yet\"",
@@ -16,7 +16,6 @@
     "filesize": "^10.1.6",
     "inquirer": "^12.3.2"
   },
-  
   "repository": {
     "type": "git",
     "url": "git+https://github.com/s000ik/dependency-insight.git"
