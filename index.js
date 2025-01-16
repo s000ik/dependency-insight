@@ -1,12 +1,22 @@
 #!/usr/bin/env node
 
-// Dependencies
+/**
+ * Dependency Insight CLI
+ * A tool for analyzing and managing project dependencies
+ */
+
+
+// Core Node.js imports
 const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const https = require("https");
+
+
+// Third-party dependencies
 const chalk = require("chalk");
 const depcheck = require("depcheck");
-const https = require("https");
+
 
 const importInquirer = async () => {
   try {
@@ -46,6 +56,12 @@ const execCommand = (command) => {
 // =====================================
 // API Interactions
 // =====================================
+
+/**
+ * Makes HTTP GET request with rate limit handling
+ * @param {string} url - API endpoint URL
+ * @returns {Promise<object|null>} Parsed JSON response
+ */
 
 const makeRequest = (url) => {
   return new Promise((resolve, reject) => {
@@ -134,12 +150,34 @@ const auditDependencies = () => {
   console.log(chalk.blue("Auditing dependencies for vulnerabilities...\n"));
   const result = execCommand("npm audit --json");
   if (result) {
+    // Show summary counts first
     const issues = result.metadata.vulnerabilities;
+    console.log(chalk.bold("Summary:"));
     console.log(
       chalk.green(
-        `Low: ${issues.low}, Moderate: ${issues.moderate}, High: ${issues.high}, Critical: ${issues.critical}`
+        `Low: ${issues.low}, Moderate: ${issues.moderate}, High: ${issues.high}, Critical: ${issues.critical}\n`
       )
     );
+
+    // Show detailed vulnerabilities
+    if (result.advisories) {
+      console.log(chalk.bold("Details:"));
+      Object.values(result.advisories).forEach(advisory => {
+        console.log(chalk.dim("─".repeat(60)));
+        console.log(`${chalk.red(advisory.title)} (${chalk.yellow(advisory.severity)})`);
+        console.log(`Vulnerable package: ${chalk.cyan(advisory.module_name)}`);
+        console.log(`Patched in: ${chalk.green(advisory.patched_versions)}`);
+        console.log(`Path: ${advisory.findings[0]?.paths[0] || 'N/A'}`);
+        console.log(`More info: ${chalk.blue(advisory.url)}\n`);
+      });
+    }
+
+    // Show fix recommendations
+    if (result.metadata.vulnerabilities.total > 0) {
+      console.log(chalk.yellow("\nRecommended actions:"));
+      console.log(chalk.dim("Run 'npm audit fix' to automatically fix fixable vulnerabilities"));
+      console.log(chalk.dim("Run 'npm audit fix --force' to force fixes (may include breaking changes)"));
+    }
   }
 };
 
@@ -151,7 +189,7 @@ const checkOutdated = () => {
     if (Object.keys(result).length === 0) {
       console.log(chalk.green("All dependencies are up to date!"));
     } else {
-      console.log(chalk.yellow("Outdated dependencies:\n"));
+      console.log(chalk.yellow("Outdated dependencies: Current → Latest (Suggested)\n"));
       Object.entries(result).forEach(([dep, info]) => {
         console.log(
           `${chalk.bold(dep)}: ${chalk.red(info.current)} → ${chalk.green(
@@ -539,7 +577,7 @@ const checkHealth = async () => {
 };
 
 // =====================================
-// Maintenance Commands
+// Maintenance & CLI Commands
 // =====================================
 
 // Command: Interactive update for dependencies
@@ -671,4 +709,7 @@ const main = async () => {
   }
 };
 
-main().catch(console.error);
+main().catch(error => {
+  console.error(chalk.red("Fatal error:"), error);
+  process.exit(1);
+});

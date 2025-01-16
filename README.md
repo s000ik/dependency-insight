@@ -1,10 +1,31 @@
 # Dependency Insight CLI Tool
 
-![dep-insight](https://github.com/user-attachments/assets/3c8cbfd2-4458-4910-95d5-70420122f142)
+![dep-insight](https://satwiks-media.s3.ap-south-1.amazonaws.com/dep-insight.png)
 
 
 ## Overview
 `dependency-insight` is a tiny, powerful, and user-friendly command-line tool designed to help you audit, analyze, and manage your project's dependencies. It provides a wide range of features to ensure that your project uses the most up-to-date, secure, and efficient libraries.
+
+
+## Installation
+
+You can install `dependency-insight` globally via npm:
+
+```bash
+npm install -g dependency-insight
+```
+
+Alternatively, you can install it locally in your project:
+
+```bash
+npm install --save-dev dependency-insight
+```
+Or simply npm i (but you may have to use npx before dep-insight)
+```bash
+npm install dependency-insight #use npx 
+```
+
+---
 
 ## Features
 
@@ -15,7 +36,13 @@
     ```
     Auditing dependencies for vulnerabilities...
 
-    Low: 2, Moderate: 3, High: 1, Critical: 0
+    Summary:
+    Low: 1, Moderate: 0, High: 0, Critical: 0
+
+
+    Recommended actions:
+    Run 'npm audit fix' to automatically fix fixable vulnerabilities
+    Run 'npm audit fix --force' to force fixes (may include breaking changes)
     ```
 
 ### 2. **Check Outdated Dependencies**
@@ -25,7 +52,7 @@
     ```
     Checking for outdated dependencies...
 
-    Outdated dependencies:
+    Outdated dependencies: Current → Latest (Suggested)
 
     lodash: 4.17.15 → 4.18.0 (4.17.19)
     react: 16.8.0 → 17.0.4 (17.0.2)
@@ -143,24 +170,6 @@
       update    - Interactive update for dependencies
       clear-cache - Clear npm cache
     ```
-
-## Installation
-
-You can install `dependency-insight` globally via npm:
-
-```bash
-npm install -g dependency-insight
-```
-
-Alternatively, you can install it locally in your project:
-
-```bash
-npm install --save-dev dependency-insight
-```
-Or simply npm i (but you may have to use npx before dep-insight)
-```bash
-npm install dependency-insight #use npx 
-```
 
 ---
 
