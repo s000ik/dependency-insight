@@ -4,7 +4,7 @@
 
 
 ## Overview
-`dependency-insight` is a tiny, powerful, and user-friendly command-line tool designed to help you audit, analyze, and manage your project's dependencies. It provides a wide range of features to ensure that your project uses the most up-to-date, secure, and efficient libraries.
+`dependency-insight` is a tiny, powerful, and user-friendly command-line tool designed to help you audit, analyze, and manage your project's dependencies. It provides a wide range of features to ensure that your project uses the most up-to-date, secure, and efficient libraries. [Available on NPM registry.](https://www.npmjs.com/package/dependency-insight)
 
 
 ## Installation
